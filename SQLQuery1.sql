@@ -379,3 +379,45 @@ HAVING COUNT(*) > 1;
 SELECT *
 FROM silver.account_mapping
 WHERE account_number = 5100;
+
+
+CREATE OR ALTER VIEW gold.dim_account AS
+WITH cte AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY account_number
+               ORDER BY account_number
+           ) AS rn
+    FROM silver.account_mapping
+)
+SELECT
+    account_name,
+    account_number,
+    notes,
+    pl_line,
+    sort_order,
+    statement_type
+FROM cte
+WHERE rn = 1;
+
+
+CREATE OR ALTER VIEW gold.dim_account AS
+WITH cte AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY account_number
+               ORDER BY account_number
+           ) AS rn
+    FROM silver.account_mapping
+)
+SELECT
+    account_name,
+    account_number,
+    CAST(NULL AS varchar(100)) AS account_type,
+    CAST(NULL AS varchar(20)) AS currency,
+    notes,
+    pl_line,
+    sort_order,
+    statement_type
+FROM cte
+WHERE rn = 1;
